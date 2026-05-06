@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Claude Reply Assistant</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 13px;
+      color: #1f1f1f;
+      background: #ffffff;
+      padding: 0;
+    }
+
+    .header {
+      background: #0f4c81;
+      color: white;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .header svg { flex-shrink: 0; }
+    .header-title { font-size: 14px; font-weight: 600; }
+    .header-sub { font-size: 11px; opacity: 0.75; margin-top: 1px; }
+
+    .body { padding: 12px 14px; display: flex; flex-direction: column; gap: 12px; }
+
+    .email-card {
+      background: #f3f6fa;
+      border: 1px solid #d0dce8;
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+    .email-card .label { font-size: 10px; font-weight: 600; color: #5a7a9a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .email-card .subject { font-size: 13px; font-weight: 600; color: #1f1f1f; margin-bottom: 4px; line-height: 1.4; }
+    .email-card .from { font-size: 11px; color: #5a7a9a; }
+    .email-card .preview { font-size: 11px; color: #666; margin-top: 6px; line-height: 1.5; max-height: 60px; overflow: hidden; }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #444;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 5px;
+    }
+
+    .tone-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tone-btn {
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid #c8d8e8;
+      background: transparent;
+      color: #555;
+      font-size: 11px;
+      font-family: 'Segoe UI', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tone-btn:hover { background: #e8f0f8; }
+    .tone-btn.active { background: #0f4c81; color: white; border-color: #0f4c81; }
+
+    .draft-btn {
+      width: 100%;
+      padding: 9px;
+      background: #0f4c81;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: 'Segoe UI', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: background 0.15s;
+    }
+    .draft-btn:hover { background: #0a3a63; }
+    .draft-btn:disabled { background: #a0b8cc; cursor: not-allowed; }
+
+    .variants-btn {
+      width: 100%;
+      padding: 7px;
+      background: transparent;
+      color: #0f4c81;
+      border: 1px solid #0f4c81;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: 'Segoe UI', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: all 0.15s;
+    }
+    .variants-btn:hover { background: #e8f0f8; }
+    .variants-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #status {
+      font-size: 11px;
+      color: #5a7a9a;
+      text-align: center;
+      min-height: 16px;
+    }
+    #status.error { color: #c0392b; }
+    #status.success { color: #1a7a4a; }
+
+    .draft-area {
+      width: 100%;
+      min-height: 130px;
+      padding: 9px 10px;
+      border: 1px solid #c8d8e8;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: 'Segoe UI', sans-serif;
+      color: #1f1f1f;
+      resize: vertical;
+      line-height: 1.6;
+      background: #fafcff;
+    }
+    .draft-area:focus { outline: none; border-color: #0f4c81; }
+    .draft-area::placeholder { color: #aab8c8; }
+
+    .copy-row { display: flex; justify-content: flex-end; gap: 7px; align-items: center; }
+    .copy-btn {
+      padding: 5px 14px;
+      background: transparent;
+      border: 1px solid #c8d8e8;
+      border-radius: 5px;
+      font-size: 11px;
+      font-family: 'Segoe UI', sans-serif;
+      color: #333;
+      cursor: pointer;
+    }
+    .copy-btn:hover { background: #f0f4f8; }
+    .copied { font-size: 11px; color: #1a7a4a; display: none; }
+
+    .api-section {
+      background: #fff8e8;
+      border: 1px solid #f0d88a;
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+    .api-section .label { font-size: 10px; font-weight: 600; color: #8a6a00; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+    .api-input {
+      width: 100%;
+      padding: 6px 9px;
+      border: 1px solid #e0c870;
+      border-radius: 5px;
+      font-size: 12px;
+      font-family: 'Segoe UI', sans-serif;
+      background: white;
+    }
+    .api-input:focus { outline: none; border-color: #c8a800; }
+    .api-hint { font-size: 10px; color: #8a6a00; margin-top: 4px; }
+
+    .divider { border: none; border-top: 1px solid #e8edf2; }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+  <div>
+    <div class="header-title">Claude Reply Assistant</div>
+    <div class="header-sub">ABK Pte. Ltd. · kw@abk.com.sg</div>
+  </div>
+</div>
+
+<div class="body">
+
+  <!-- API Key -->
+  <div class="api-section">
+    <div class="label">🔑 Anthropic API Key</div>
+    <input type="password" id="api-key" class="api-input" placeholder="sk-ant-api03-..."/>
+    <div class="api-hint">Get yours at console.anthropic.com · Stored locally in your browser</div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- Email preview -->
+  <div>
+    <div class="section-label">Selected Email</div>
+    <div class="email-card" id="email-card">
+      <div class="label">Loading…</div>
+    </div>
+  </div>
+
+  <!-- Tone -->
+  <div>
+    <div class="section-label">Tone</div>
+    <div class="tone-row">
+      <button class="tone-btn active" onclick="setTone('professional', this)">Professional</button>
+      <button class="tone-btn" onclick="setTone('concise', this)">Concise</button>
+      <button class="tone-btn" onclick="setTone('friendly', this)">Friendly</button>
+      <button class="tone-btn" onclick="setTone('formal', this)">Formal</button>
+    </div>
+  </div>
+
+  <!-- Action buttons -->
+  <button class="draft-btn" id="draft-btn" onclick="draftReply()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    Draft Reply with Claude
+  </button>
+
+  <button class="variants-btn" id="variants-btn" onclick="draftVariants()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    Generate 2 Variants
+  </button>
+
+  <div id="status"></div>
+
+  <!-- Draft output -->
+  <div>
+    <div class="section-label">Draft Reply</div>
+    <textarea class="draft-area" id="draft-output" placeholder="Your Claude-drafted reply will appear here. Edit as needed before copying into Outlook."></textarea>
+    <div class="copy-row">
+      <span class="copied" id="copied-msg">✓ Copied!</span>
+      <button class="copy-btn" onclick="copyDraft()">Copy to clipboard</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let currentEmail = { subject: '', sender: '', body: '' };
+  let tone = 'professional';
+
+  Office.onReady(function(info) {
+    if (info.host === Office.HostType.Outlook) {
+      loadEmailData();
+      loadApiKey();
+    }
+  });
+
+  function loadApiKey() {
+    const saved = localStorage.getItem('claude_api_key');
+    if (saved) document.getElementById('api-key').value = saved;
+    document.getElementById('api-key').addEventListener('change', function() {
+      localStorage.setItem('claude_api_key', this.value.trim());
+    });
+  }
+
+  function loadEmailData() {
+    const item = Office.context.mailbox.item;
+    if (!item) { showEmailCard('No email selected', '', ''); return; }
+
+    const subject = item.subject || '(No subject)';
+    const sender = item.from ? (item.from.displayName + ' <' + item.from.emailAddress + '>') : 'Unknown sender';
+
+    item.body.getAsync(Office.CoercionType.Text, function(result) {
+      const body = result.status === Office.AsyncResultStatus.Succeeded
+        ? result.value.trim().slice(0, 2000)
+        : '(Could not read email body)';
+      currentEmail = { subject, sender, body };
+      showEmailCard(subject, sender, body);
+    });
+  }
+
+  function showEmailCard(subject, sender, body) {
+    document.getElementById('email-card').innerHTML = `
+      <div class="label">From</div>
+      <div class="from" style="margin-bottom:6px">${esc(sender)}</div>
+      <div class="label">Subject</div>
+      <div class="subject">${esc(subject)}</div>
+      <div class="preview">${esc(body.slice(0, 200))}${body.length > 200 ? '…' : ''}</div>
+    `;
+  }
+
+  function setTone(t, el) {
+    tone = t;
+    document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function getApiKey() {
+    const key = document.getElementById('api-key').value.trim();
+    if (key) localStorage.setItem('claude_api_key', key);
+    return key;
+  }
+
+  async function draftReply() {
+    const apiKey = getApiKey();
+    if (!apiKey) { setStatus('Please enter your Anthropic API key above.', 'error'); return; }
+    if (!currentEmail.subject) { setStatus('No email loaded. Please select an email first.', 'error'); return; }
+
+    setLoading(true);
+    setStatus('Claude is drafting your reply…');
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          system: `You are an email assistant for Kevin (KW) at ABK Pte. Ltd. (kw@abk.com.sg, T: +65 6897 9939, www.abk.com.sg). Draft a single ${tone} reply to the email provided. Output ONLY the reply body — no subject line, no explanation, no preamble. End with this sign-off:\n\nBest regards,\n\nKW\nABK Pte. Ltd.\nT: +65 6897 9939\nE: kw@abk.com.sg\nwww.abk.com.sg`,
+          messages: [{
+            role: 'user',
+            content: `From: ${currentEmail.sender}\nSubject: ${currentEmail.subject}\n\n${currentEmail.body}`
+          }]
+        })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error.message);
+      const reply = data.content.find(b => b.type === 'text')?.text || '';
+      document.getElementById('draft-output').value = reply;
+      setStatus('✓ Reply drafted — review and copy.', 'success');
+    } catch (err) {
+      setStatus('Error: ' + err.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function draftVariants() {
+    const apiKey = getApiKey();
+    if (!apiKey) { setStatus('Please enter your Anthropic API key above.', 'error'); return; }
+    if (!currentEmail.subject) { setStatus('No email loaded.', 'error'); return; }
+
+    setLoading(true, true);
+    setStatus('Generating 2 variants…');
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1500,
+          system: `You are an email assistant for Kevin (KW) at ABK Pte. Ltd. Draft TWO reply variants. Label them clearly as "--- VARIANT 1: Professional ---" and "--- VARIANT 2: Concise ---". Each reply ends with: Best regards,\n\nKW\nABK Pte. Ltd.\nT: +65 6897 9939\nE: kw@abk.com.sg\nwww.abk.com.sg`,
+          messages: [{
+            role: 'user',
+            content: `From: ${currentEmail.sender}\nSubject: ${currentEmail.subject}\n\n${currentEmail.body}`
+          }]
+        })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error.message);
+      const reply = data.content.find(b => b.type === 'text')?.text || '';
+      document.getElementById('draft-output').value = reply;
+      setStatus('✓ 2 variants ready — choose one and copy.', 'success');
+    } catch (err) {
+      setStatus('Error: ' + err.message, 'error');
+    } finally {
+      setLoading(false, true);
+    }
+  }
+
+  function copyDraft() {
+    const ta = document.getElementById('draft-output');
+    if (!ta.value) return;
+    navigator.clipboard.writeText(ta.value).then(() => {
+      const msg = document.getElementById('copied-msg');
+      msg.style.display = 'inline';
+      setTimeout(() => msg.style.display = 'none', 2000);
+    });
+  }
+
+  function setStatus(msg, type) {
+    const el = document.getElementById('status');
+    el.textContent = msg;
+    el.className = type || '';
+  }
+
+  function setLoading(loading, isVariants) {
+    const btn = document.getElementById(isVariants ? 'variants-btn' : 'draft-btn');
+    btn.disabled = loading;
+    if (loading) {
+      btn.innerHTML = isVariants
+        ? '<span class="spinner" style="border-top-color:#0f4c81;border-color:rgba(15,76,129,0.3)"></span> Generating…'
+        : '<span class="spinner"></span> Drafting…';
+    } else {
+      btn.innerHTML = isVariants
+        ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Generate 2 Variants'
+        : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Draft Reply with Claude';
+    }
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
+</body>
+</html>

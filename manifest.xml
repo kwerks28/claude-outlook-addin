@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
+  xsi:type="MailApp">
+
+  <Id>a1b2c3d4-e5f6-7890-abcd-ef1234567890</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>ABK Pte. Ltd.</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Claude Reply Assistant"/>
+  <Description DefaultValue="Draft smart email replies using Claude AI"/>
+  <IconUrl DefaultValue="https://raw.githubusercontent.com/microsoft/Office-Add-in-samples/main/Samples/outlook-check-item-categories/assets/icon-80.png"/>
+  <HighResolutionIconUrl DefaultValue="https://raw.githubusercontent.com/microsoft/Office-Add-in-samples/main/Samples/outlook-check-item-categories/assets/icon-80.png"/>
+  <SupportUrl DefaultValue="https://www.abk.com.sg"/>
+  <AppDomains>
+    <AppDomain>https://api.anthropic.com</AppDomain>
+  </AppDomains>
+
+  <Hosts>
+    <Host Name="Mailbox"/>
+  </Hosts>
+
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" MinVersion="1.1"/>
+    </Sets>
+  </Requirements>
+
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://YOUR-USERNAME.github.io/claude-outlook-addin/taskpane.html"/>
+        <RequestedHeight>450</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+
+  <Permissions>ReadItem</Permissions>
+  <Rule xsi:type="RuleCollection" Mode="Or">
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Read"/>
+  </Rule>
+  <DisableEntityHighlighting>false</DisableEntityHighlighting>
+
+</OfficeApp>
