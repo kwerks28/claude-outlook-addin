@@ -310,7 +310,7 @@
           'anthropic-dangerous-direct-browser-access': 'true'
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-5',
           max_tokens: 1000,
           system: `You are an email assistant for Kevin (KW) at ABK Pte. Ltd. (kw@abk.com.sg, T: +65 6897 9939, www.abk.com.sg). Draft a single ${tone} reply to the email provided. Output ONLY the reply body — no subject line, no explanation, no preamble. End with this sign-off:\n\nBest regards,\n\nKW\nABK Pte. Ltd.\nT: +65 6897 9939\nE: kw@abk.com.sg\nwww.abk.com.sg`,
           messages: [{
@@ -350,7 +350,7 @@
           'anthropic-dangerous-direct-browser-access': 'true'
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-5',
           max_tokens: 1500,
           system: `You are an email assistant for Kevin (KW) at ABK Pte. Ltd. Draft TWO reply variants. Label them clearly as "--- VARIANT 1: Professional ---" and "--- VARIANT 2: Concise ---". Each reply ends with: Best regards,\n\nKW\nABK Pte. Ltd.\nT: +65 6897 9939\nE: kw@abk.com.sg\nwww.abk.com.sg`,
           messages: [{
