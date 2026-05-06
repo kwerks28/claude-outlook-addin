@@ -31,7 +31,7 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://YOUR-USERNAME.github.io/claude-outlook-addin/taskpane.html"/>
+        <SourceLocation DefaultValue="https://kwerks28.github.io/claude-outlook-addin/taskpane.html"/>
         <RequestedHeight>450</RequestedHeight>
       </DesktopSettings>
     </Form>
